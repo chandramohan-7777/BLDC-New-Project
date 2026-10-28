@@ -1,0 +1,5 @@
+echo .vs/ >> .gitignore
+echo *.vsidx >> .gitignore.vs/ 
+*.vsidx 
+[Bb]in/ 
+[Oo]bj/ 

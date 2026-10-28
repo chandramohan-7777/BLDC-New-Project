@@ -1,0 +1,46 @@
+{
+  "Left": [
+    {
+      "Label": "Speed",
+      "PropertyName": "LeftSpeed",
+      "Suffix": " rpm"
+    },
+    {
+      "Label": "Accel",
+      "PropertyName": "LeftAccel",
+      "Suffix": " rpm/s"
+    },
+    {
+      "Label": "Decel",
+      "PropertyName": "LeftDecel",
+      "Suffix": " rpm/s"
+    },
+    {
+      "Label": "Current",
+      "PropertyName": "LeftCurrent",
+      "Suffix": " A"
+    }
+  ],
+  "Right": [
+    {
+      "Label": "Speed",
+      "PropertyName": "RightSpeed",
+      "Suffix": " rpm"
+    },
+    {
+      "Label": "Accel",
+      "PropertyName": "RightAccel",
+      "Suffix": " rpm/s"
+    },
+    {
+      "Label": "Decel",
+      "PropertyName": "RightDecel",
+      "Suffix": " rpm/s"
+    },
+    {
+      "Label": "Current",
+      "PropertyName": "RightCurrent",
+      "Suffix": " A"
+    }
+  ]
+}
