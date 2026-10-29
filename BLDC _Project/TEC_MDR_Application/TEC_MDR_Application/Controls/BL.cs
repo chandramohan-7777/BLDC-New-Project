@@ -1,4 +1,4 @@
-﻿
+
 ////using System;
 ////using System.Collections.Concurrent;
 ////using System.Diagnostics;
@@ -1639,7 +1639,10 @@ namespace BLDC_Demo.Controls
                     case 0x0026:
                         device.SerialNumber = val.ToString();
                         break;
-                    case 0x0027: // Left Speed
+                    case 0x0040: // ZPA MODE: 0 = inactive, 1 = active
+                        device.ZpaMode = val;
+                        break;
+                                        case 0x0027: // Left Speed
                         device.LeftSpeed = val.ToString();
                         break;
                     case 0x002A: // Left Acceleration

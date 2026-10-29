@@ -3,6 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <UserControl.Resources>
+                <!-- Blink animation for ZPA-active indicator -->
+        <Storyboard x:Key="ZpaBlinkStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimationUsingKeyFrames
+                                           Storyboard.TargetProperty="Opacity">
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0.0"  Value="1.0"/>
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0.5"  Value="0.15"/>
+                <DiscreteDoubleKeyFrame KeyTime="0:0:1.0"  Value="1.0"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+
         <Style x:Key="ModernToggleSwitch" TargetType="ToggleButton">
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -48,7 +58,7 @@
                                RadiusX="2"
                                RadiusY="2"/>
 
-                    <TextBlock Text="ZPA SETTING (ZERO PRESSURE ACCUMULATION)"
+                    <TextBlock Text="ZPA CONFIGURATION (ZERO PRESSURE ACCUMULATION)"
                                FontFamily="Arial Black"
                                FontSize="11"
                                FontWeight="Black"
@@ -59,7 +69,20 @@
                 <!-- Right: ZPA Status Indicator & Edit Mode Toggle -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
 
-                    <Path Width="11" Height="11" Stretch="Uniform" Fill="{StaticResource AccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center"
+                    <!-- ZPA Active blink dot — shown only when ZPA is running (ZpaMode=1) -->
+                    <Ellipse x:Name="ZpaActiveDot"
+                             Width="10" Height="10"
+                             Fill="#22C55E"
+                             VerticalAlignment="Center"
+                             Margin="0,0,8,0"
+                             Visibility="Collapsed"
+                             ToolTip="ZPA Active — auto-configuration complete">
+                        <Ellipse.Effect>
+                            <DropShadowEffect Color="#22C55E" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+                        </Ellipse.Effect>
+                    </Ellipse>
+
+                                        <Path Width="11" Height="11" Stretch="Uniform" Fill="{StaticResource AccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center"
                           Data="M3,17.25V21h3.75L17.81,9.94l-3.75-3.75L3,17.25z M20.71,7.04c0.39-0.39,0.39-1.02,0-1.41l-2.34-2.34c-0.39-0.39-1.02-0.39-1.41,0l-1.83,1.83l3.75,3.75L20.71,7.04z"/>
                     <TextBlock Text="EDIT" FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ToggleButton x:Name="EditModeToggle"
@@ -135,14 +158,14 @@
                     <StackPanel Grid.Row="0"
                               Grid.Column="4">
 
-                                 <TextBlock Text="▸ ZPA DIRECTION"
+                         <TextBlock Text="▸ ZPA STREAM"
                                  Style="{StaticResource FieldLabel}"/>
 
-                                    <ComboBox x:Name="ipdirection"
-                                Foreground="#5A6A8A"
-                                Style="{StaticResource DarkComboBox}"
-                                ItemContainerStyle="{StaticResource MutedComboItem}"
-                                SelectionChanged="IpDirection_SelectionChanged">
+                        <ComboBox x:Name="ipdirection"
+                                    Foreground="#5A6A8A"
+                                    Style="{StaticResource DarkComboBox}"
+                                    ItemContainerStyle="{StaticResource MutedComboItem}"
+                                    SelectionChanged="IpDirection_SelectionChanged">    
 
                                         <ComboBoxItem Content="Up Stream "/>
                                         <ComboBoxItem Content="Down stream"/>

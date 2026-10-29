@@ -1,4 +1,4 @@
-﻿
+
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using BLDC_Demo.Models;
@@ -415,7 +415,12 @@ namespace BLDC_Demo.Models
         private int _rightOverTemperature=-1;
         public int RightOverTemperature { get => _rightOverTemperature; set { _rightOverTemperature = value; OnPropertyChanged(nameof(RightOverTemperature)); } }
 
-        // Kept for compatibility with any other file that still references
+        // ZPA status register (0x0040): 0 = inactive, 1 = active.
+        // Updated live by BL.ParseAndUpdateUI so the UI can poll it.
+        private ushort _zpaMode;
+        public ushort ZpaMode { get => _zpaMode; set { _zpaMode = value; OnPropertyChanged(nameof(ZpaMode)); } }
+
+                // Kept for compatibility with any other file that still references
         // ConnectedNodes / SubNode. Not used by BL.cs anymore.
         public ObservableCollection<SubNode> ConnectedNodes { get; } = new ObservableCollection<SubNode>();
 
@@ -448,6 +453,7 @@ namespace BLDC_Demo.Models
             this.IsActive = false;
             this.LeftOverCurrent = -1;
             this.RightOverCurrent = -1;
+            this.ZpaMode = 0;
             OnPropertyChanged(string.Empty);
         }
     }

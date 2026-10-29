@@ -11,19 +11,19 @@
       "RelativeMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|solutionrelative:zpasettingcontrol.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\sensor.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|solutionrelative:sensor.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|d:\\hardware project bldc\\bldc _project\\tec_mdr_application\\tec_mdr_application\\sensor.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|solutionrelative:sensor.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|solutionrelative:mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|d:\\hardware project bldc\\bldc _project\\tec_mdr_application\\tec_mdr_application\\sensor.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "AbsoluteMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\sensor.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{2E866E63-32EF-4A13-96A9-0369A262A12D}|BLDC_Demo.csproj|solutionrelative:sensor.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
@@ -42,16 +42,15 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "Sensor.xaml.cs",
               "DocumentMoniker": "D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\Sensor.xaml.cs",
               "RelativeDocumentMoniker": "Sensor.xaml.cs",
               "ToolTip": "D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\Sensor.xaml.cs",
               "RelativeToolTip": "Sensor.xaml.cs",
-              "ViewState": "AgIAAGcAAAAAAAAAAAAwwHYAAAAkAAAAAAAAAA==",
+              "ViewState": "AgIAAFsAAAAAAAAAAAA+wGUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T04:18:02.976Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T10:52:30.563Z"
             },
             {
               "$type": "Document",
@@ -62,8 +61,7 @@
               "ToolTip": "D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\Sensor.xaml",
               "RelativeToolTip": "Sensor.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-10-29T04:17:49.884Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T10:52:30.563Z"
             },
             {
               "$type": "Document",
@@ -73,9 +71,9 @@
               "RelativeDocumentMoniker": "ZPASettingControl.xaml.cs",
               "ToolTip": "D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\ZPASettingControl.xaml.cs",
               "RelativeToolTip": "ZPASettingControl.xaml.cs",
-              "ViewState": "AgIAAC8FAAAAAAAAAAAowEcFAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAANgFAAAAAAAAAAAAAPEFAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-28T10:37:44.151Z",
+              "WhenOpened": "2026-10-29T10:52:30.57Z",
               "EditorCaption": ""
             },
             {
@@ -87,7 +85,7 @@
               "ToolTip": "D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\ZPASettingControl.xaml",
               "RelativeToolTip": "ZPASettingControl.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-10-28T10:32:51.96Z",
+              "WhenOpened": "2026-10-29T10:52:30.575Z",
               "EditorCaption": ""
             },
             {
@@ -99,12 +97,11 @@
               "ToolTip": "D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\MainWindow.xaml",
               "RelativeToolTip": "MainWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-10-28T10:32:36.244Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T10:52:30.586Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "D:\\Hardware Project BLDC\\BLDC _Project\\TEC_MDR_Application\\TEC_MDR_Application\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
@@ -112,8 +109,7 @@
               "RelativeToolTip": "MainWindow.xaml.cs",
               "ViewState": "AgIAAKQAAAAAAAAAAAAqwM0AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-28T10:31:10.263Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T10:52:30.586Z"
             },
             {
               "$type": "Document",
@@ -125,8 +121,7 @@
               "RelativeToolTip": "App.xaml.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-28T09:12:30.517Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T10:52:30.586Z"
             }
           ]
         }

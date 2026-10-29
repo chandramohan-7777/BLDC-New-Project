@@ -1,4 +1,4 @@
-﻿//////////using System;
+//////////using System;
 //////////using System.Collections.Generic;
 //////////using System.Linq;
 //////////using System.Text;
@@ -8,7 +8,6 @@
 //////////using System.Windows.Data;
 //////////using System.Windows.Documents;
 //////////using System.Windows.Input;
-using System.Threading;
 //////////using System.Windows.Media;
 //////////using System.Windows.Media.Imaging;
 //////////using System.Windows.Navigation;
@@ -1137,9 +1136,11 @@ using System.Threading;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using BLDC_Demo.Controls;   // BL
 using BLDC_Demo.Models;     // ModbusDevice
 
@@ -1186,6 +1187,10 @@ namespace BLDC_Demo
             if (!IsEditMode)
             {
                 Keyboard.ClearFocus();
+                if (ModeComboBox != null) ModeComboBox.IsDropDownOpen = false;
+                if (MDRDirectionComboBox != null) MDRDirectionComboBox.IsDropDownOpen = false;
+                if (ipdirection != null) ipdirection.IsDropDownOpen = false;
+                if (MDRflagComboBox != null) MDRflagComboBox.IsDropDownOpen = false;
             }
             ApplyModeState();
         }
@@ -1223,14 +1228,25 @@ namespace BLDC_Demo
         private void ApplyModeState()
         {
             // Controls can be null while InitializeComponent is still running
-            if (ModeComboBox == null || UpStreamIPTextBox == null ||
-                DownStreamIPTextBox == null || MDRflagComboBox == null) return;
+            if (ModeComboBox == null || MDRDirectionComboBox == null ||
+                UpStreamIPTextBox == null || DownStreamIPTextBox == null ||
+                MDRflagComboBox == null) return;
 
             bool isEdit = IsEditMode;
             bool gapTrain = IsGapTrainMode;
 
+            // When Edit Mode is OFF: ALL dropdowns, input fields, and the Set button are disabled.
+            // Option cannot be chosen or changed when not in edit mode.
+            ModeComboBox.IsEnabled = isEdit;
+            if (MDRDirectionComboBox != null)
+                MDRDirectionComboBox.IsEnabled = isEdit;
+            if (ipdirection != null)
+                ipdirection.IsEnabled = isEdit;
+            if (SetConfigurationButton != null)
+                SetConfigurationButton.IsEnabled = isEdit;
+
             // When Edit Mode is ON, Master IP, Last IP, and MDR Off Flag depend on GAP Train mode.
-            // When Edit Mode is OFF, they are disabled (and RootBorder also disables the entire container).
+            // When Edit Mode is OFF, they are disabled.
             UpStreamIPTextBox.IsEnabled = isEdit && gapTrain;     // Master IP
             DownStreamIPTextBox.IsEnabled = isEdit && gapTrain;   // Last IP
             MDRflagComboBox.IsEnabled = isEdit && gapTrain;       // MDR Off Flag
@@ -1306,9 +1322,13 @@ namespace BLDC_Demo
 
         // ══════════════════════════════════════════════════════════════
         //  SET CONFIGURATION BUTTON CLICK
-        //  Sends all ZPA values one-by-one only when this button is clicked
+        //  Sends ZPA configuration to the controller.
+        //  - If Mode is OFF: sends 0x0040 = 0 directly without requiring
+        //    MDR direction or ZPA direction.
+        //  - If Mode is GAP Train: validates required direction fields,
+        //    sends parameters, and displays "Configuration sent".
         // ══════════════════════════════════════════════════════════════
-        private void SetConfigurationButton_Click(object sender, RoutedEventArgs e)
+        private async void SetConfigurationButton_Click(object sender, RoutedEventArgs e)
         {
             if (!IsEditMode)
             {
@@ -1324,10 +1344,27 @@ namespace BLDC_Demo
                 return;
             }
 
-            // ── Required Fields Validation ──
-            var missingFields = new List<string>();
             if (ModeComboBox == null || ModeComboBox.SelectedIndex < 0)
-                missingFields.Add("MODE");
+            {
+                MessageBox.Show("Please select a MODE.", "Required Field", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ModeComboBox?.Focus();
+                return;
+            }
+
+            // ── Turning ZPA OFF (Mode = 0) ──
+            // Only click OFF then Set Configuration — no direction selection required
+            if (ModeComboBox.SelectedIndex == 0)
+            {
+                BLLogic.SendWriteCommand(0x0040, 0);
+                System.Diagnostics.Debug.WriteLine("[ZPA SET] Mode sent: 0 (OFF)");
+                SetZpaActiveIndicator(false);
+                _previousZpaMode = 0;
+                MessageBox.Show("Configuration sent", "Configuration Sent", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // ── Turning ZPA ON (GAP Train Mode = 1) ──
+            var missingFields = new List<string>();
             if (MDRDirectionComboBox == null || MDRDirectionComboBox.SelectedIndex < 0)
                 missingFields.Add("MDR DIRECTION");
             if (ipdirection == null || ipdirection.SelectedIndex < 0)
@@ -1341,24 +1378,17 @@ namespace BLDC_Demo
 
                 MessageBox.Show(msg, "Required Field", MessageBoxButton.OK, MessageBoxImage.Warning);
 
-                if (ModeComboBox?.SelectedIndex < 0) ModeComboBox.Focus();
-                else if (MDRDirectionComboBox?.SelectedIndex < 0) MDRDirectionComboBox.Focus();
+                if (MDRDirectionComboBox?.SelectedIndex < 0) MDRDirectionComboBox.Focus();
                 else ipdirection?.Focus();
 
                 return;
             }
 
-            bool anySent = false;
-
-            // 1. MODE (Register 0x0040: 0 = OFF, 1 = GAP Train)
-            if (ModeComboBox != null && ModeComboBox.SelectedIndex >= 0)
-            {
-                ushort modeVal = (ushort)ModeComboBox.SelectedIndex;
-                BLLogic.SendWriteCommand(0x0040, modeVal);
-                System.Diagnostics.Debug.WriteLine($"[ZPA SET] Mode sent: {modeVal} ({(modeVal == 1 ? "GAP Train" : "OFF")})");
-                anySent = true;
-                Thread.Sleep(10);
-            }
+            // 1. MODE (Register 0x0040: 1 = GAP Train)
+            ushort modeVal = (ushort)ModeComboBox.SelectedIndex;
+            BLLogic.SendWriteCommand(0x0040, modeVal);
+            System.Diagnostics.Debug.WriteLine($"[ZPA SET] Mode sent: {modeVal} (GAP Train)");
+            await Task.Delay(10);
 
             // 2. MDR DIRECTION (Register 0x0041: 0 = CW, 1 = CCW)
             if (MDRDirectionComboBox != null && MDRDirectionComboBox.SelectedIndex >= 0)
@@ -1366,8 +1396,7 @@ namespace BLDC_Demo
                 ushort dirVal = (ushort)MDRDirectionComboBox.SelectedIndex;
                 BLLogic.SendWriteCommand(0x0041, dirVal);
                 System.Diagnostics.Debug.WriteLine($"[ZPA SET] MDR Direction sent: {dirVal} ({(dirVal == 1 ? "CCW" : "CW")})");
-                anySent = true;
-                Thread.Sleep(10);
+                await Task.Delay(10);
             }
 
             // 3. ZPA DIRECTION (REG_ZPA_IP_DIRECTION: 0 = Up Stream, 1 = Down stream)
@@ -1376,8 +1405,7 @@ namespace BLDC_Demo
                 ushort zpaDirVal = (ushort)ipdirection.SelectedIndex;
                 BLLogic.SendWriteCommand(REG_ZPA_IP_DIRECTION.Value, zpaDirVal);
                 System.Diagnostics.Debug.WriteLine($"[ZPA SET] ZPA Direction sent: {zpaDirVal}");
-                anySent = true;
-                Thread.Sleep(10);
+                await Task.Delay(10);
             }
 
             // 4. MDR OFF FLAG (REG_MDR_OFF_FLAG: 0 = Enable, 1 = Disable)
@@ -1386,20 +1414,18 @@ namespace BLDC_Demo
                 ushort flagVal = (ushort)MDRflagComboBox.SelectedIndex;
                 BLLogic.SendWriteCommand(REG_MDR_OFF_FLAG.Value, flagVal);
                 System.Diagnostics.Debug.WriteLine($"[ZPA SET] MDR Off Flag sent: {flagVal}");
-                anySent = true;
-                Thread.Sleep(10);
+                await Task.Delay(10);
             }
 
             // 5. MASTER IP (Register 0x0024: Upstream IP last octet) - applicable in GAP Train mode
-            if (IsGapTrainMode && UpStreamIPTextBox != null && !string.IsNullOrWhiteSpace(UpStreamIPTextBox.Text))
+            if (UpStreamIPTextBox != null && !string.IsNullOrWhiteSpace(UpStreamIPTextBox.Text))
             {
                 if (byte.TryParse(LastOctetOf(UpStreamIPTextBox.Text), out byte upValue))
                 {
                     BLLogic.SendWriteCommand(REG_UPSTREAM_IP, upValue);
                     UpStreamIPTextBox.Text = ToFullIp(upValue.ToString());
                     System.Diagnostics.Debug.WriteLine($"[ZPA SET] Master IP sent: {upValue}");
-                    anySent = true;
-                    Thread.Sleep(10);
+                    await Task.Delay(10);
                 }
                 else
                 {
@@ -1409,15 +1435,14 @@ namespace BLDC_Demo
             }
 
             // 6. LAST IP (Register 0x0025: Downstream IP last octet) - applicable in GAP Train mode
-            if (IsGapTrainMode && DownStreamIPTextBox != null && !string.IsNullOrWhiteSpace(DownStreamIPTextBox.Text))
+            if (DownStreamIPTextBox != null && !string.IsNullOrWhiteSpace(DownStreamIPTextBox.Text))
             {
                 if (byte.TryParse(LastOctetOf(DownStreamIPTextBox.Text), out byte downValue))
                 {
                     BLLogic.SendWriteCommand(REG_DOWNSTREAM_IP, downValue);
                     DownStreamIPTextBox.Text = ToFullIp(downValue.ToString());
                     System.Diagnostics.Debug.WriteLine($"[ZPA SET] Last IP sent: {downValue}");
-                    anySent = true;
-                    Thread.Sleep(10);
+                    await Task.Delay(10);
                 }
                 else
                 {
@@ -1426,11 +1451,11 @@ namespace BLDC_Demo
                 }
             }
 
-            if (anySent)
-            {
-                MessageBox.Show("ZPA Configuration successfully sent to controller.", "Configuration Applied", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            // Popup as requested: "Configuration sent"
+            MessageBox.Show("Configuration sent", "Configuration Sent", MessageBoxButton.OK, MessageBoxImage.Information);
         }
+
+        private int _previousZpaMode = -1;
 
         public void UpdateMotorTelemetry(ModbusDevice device)
         {
@@ -1438,6 +1463,31 @@ namespace BLDC_Demo
 
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
+                // Read mode status directly from telemetry
+                if (device.ZpaMode == 1)
+                {
+                    // Green light blinks near edit option in ZPA only
+                    SetZpaActiveIndicator(true);
+
+                    // Show popup when transition to active occurs (only once per activation)
+                    if (_previousZpaMode != 1)
+                    {
+                        _previousZpaMode = 1;
+
+                        if (ModeComboBox != null && !IsEditMode && ModeComboBox.SelectedIndex != MODE_GAP_TRAIN)
+                        {
+                            ModeComboBox.SelectedIndex = MODE_GAP_TRAIN;
+                        }
+
+                        MessageBox.Show("ZPA is active", "ZPA Status", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                else
+                {
+                    SetZpaActiveIndicator(false);
+                    _previousZpaMode = 0;
+                }
+
                 // Master / Last IP data is shown only in GAP Train mode
                 if (!IsGapTrainMode) return;
 
@@ -1458,6 +1508,37 @@ namespace BLDC_Demo
             }));
         }
 
+        // Shows or hides the blinking green ZPA-active dot near the EDIT toggle.
+        // The dot is only relevant in ZPA (GAP Train) mode; it goes away when
+        // ZPA is off OR when the card reports ZpaMode = 0 (auto-config still running).
+        private Storyboard _zpaBlink;
+        private bool _zpaIndicatorOn = false;
+
+        private void SetZpaActiveIndicator(bool active)
+        {
+            if (ZpaActiveDot == null) return;
+            if (active == _zpaIndicatorOn) return;   // no change needed
+
+            _zpaIndicatorOn = active;
+
+            if (active)
+            {
+                ZpaActiveDot.Visibility = Visibility.Visible;
+
+                // Retrieve and cache the storyboard from XAML resources on first use
+                if (_zpaBlink == null)
+                    _zpaBlink = (Storyboard)Resources["ZpaBlinkStoryboard"];
+
+                _zpaBlink?.Begin(ZpaActiveDot, true);
+            }
+            else
+            {
+                _zpaBlink?.Stop(ZpaActiveDot);
+                ZpaActiveDot.Visibility = Visibility.Collapsed;
+                ZpaActiveDot.Opacity = 1.0;
+            }
+        }
+
         private void Combo_MouseLeave(object sender, MouseEventArgs e)
         {
             if (sender is ComboBox cb && cb.IsDropDownOpen)
@@ -1476,6 +1557,10 @@ namespace BLDC_Demo
 
             // Mode is now -1, so this disables and empties Master IP, Last IP and MDR Off Flag
             ApplyModeState();
+
+            // Hide the ZPA-active indicator when the UI is cleared (e.g. on disconnect)
+            SetZpaActiveIndicator(false);
+            _previousZpaMode = -1;
         }
     }
 }
