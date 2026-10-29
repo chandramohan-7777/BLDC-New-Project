@@ -198,7 +198,7 @@ namespace BLDC_Demo
             }
             else
             {
-                ClearAllUI();
+                //ClearAllUI();
             }
         }
 

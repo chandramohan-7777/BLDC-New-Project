@@ -1,4 +1,4 @@
-//////////using System;
+﻿//////////using System;
 //////////using System.Collections.Generic;
 //////////using System.Linq;
 //////////using System.Text;
@@ -8,6 +8,7 @@
 //////////using System.Windows.Data;
 //////////using System.Windows.Documents;
 //////////using System.Windows.Input;
+using System.Threading;
 //////////using System.Windows.Media;
 //////////using System.Windows.Media.Imaging;
 //////////using System.Windows.Navigation;
@@ -1134,6 +1135,8 @@
 //    }
 //}
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -1175,6 +1178,18 @@ namespace BLDC_Demo
         private bool IsGapTrainMode =>
             ModeComboBox != null && ModeComboBox.SelectedIndex == MODE_GAP_TRAIN;
 
+        // True only while Edit Mode toggle is switched ON
+        public bool IsEditMode => EditModeToggle?.IsChecked == true;
+
+        private void EditModeToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsEditMode)
+            {
+                Keyboard.ClearFocus();
+            }
+            ApplyModeState();
+        }
+
         // ── IP display helpers ──────────────────────────────────────────────
         // Prefix = first 3 octets of the IP we are SUCCESSFULLY connected to (e.g. "192.168.1").
         // No fallback to any saved/previous value: if there is no live connection,
@@ -1211,11 +1226,14 @@ namespace BLDC_Demo
             if (ModeComboBox == null || UpStreamIPTextBox == null ||
                 DownStreamIPTextBox == null || MDRflagComboBox == null) return;
 
+            bool isEdit = IsEditMode;
             bool gapTrain = IsGapTrainMode;
 
-            UpStreamIPTextBox.IsEnabled = gapTrain;     // Master IP
-            DownStreamIPTextBox.IsEnabled = gapTrain;   // Last IP
-            MDRflagComboBox.IsEnabled = gapTrain;       // MDR Off Flag
+            // When Edit Mode is ON, Master IP, Last IP, and MDR Off Flag depend on GAP Train mode.
+            // When Edit Mode is OFF, they are disabled (and RootBorder also disables the entire container).
+            UpStreamIPTextBox.IsEnabled = isEdit && gapTrain;     // Master IP
+            DownStreamIPTextBox.IsEnabled = isEdit && gapTrain;   // Last IP
+            MDRflagComboBox.IsEnabled = isEdit && gapTrain;       // MDR Off Flag
 
             if (!gapTrain)
             {
@@ -1235,100 +1253,183 @@ namespace BLDC_Demo
 
         private void ModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var cb = (ComboBox)sender;
-
-            ApplyModeState();   // always refresh enable/disable + data, even for code-driven changes
-
-            if (!cb.IsLoaded || cb.SelectedIndex < 0 || !IsUserChange(cb)) return;
-
-            // 0 = OFF, 1 = GAP Train
-            BLLogic?.SendWriteCommand(0x0040, (ushort)cb.SelectedIndex);
+            // Update UI enable/disable states (Master IP, Last IP, MDR Off Flag)
+            ApplyModeState();
+            // Note: Modbus write is deferred to Set Configuration button click
         }
-        //private void ModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        //{
-        //    var cb = (ComboBox)sender;
 
-        //    ApplyModeState();   // refresh enable/disable + data
-
-        //    if (!cb.IsLoaded || cb.SelectedIndex < 0 || !IsUserChange(cb)) return;
-
-        //    // 0 = OFF, 1 = GAP Train
-        //    if (BLLogic == null || !BLLogic.SendWriteCommand(0x0040, (ushort)cb.SelectedIndex))
-        //        return;
-
-        //    // GAP Train only: the command is already queued, now close the connection.
-        //    if (cb.SelectedIndex == MODE_GAP_TRAIN)
-        //        CommMotorSelectControl.Instance?.DropConnectionForModeChange();
-        //}
         private void MDRDirectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var cb = (ComboBox)sender;
-            if (!cb.IsLoaded || cb.SelectedIndex < 0 || !IsUserChange(cb)) return;
-
-            // 0 = CW, 1 = CCW (same encoding as ParseAndUpdateUI: val == 1 -> CCW)
-            BLLogic?.SendWriteCommand(0x0041, (ushort)cb.SelectedIndex);
+            // Note: Modbus write is deferred to Set Configuration button click
         }
 
-        // Referenced in XAML (MDR OFF FLAG combo). Stub - set REG_MDR_OFF_FLAG to enable writing.
         private void MDRflagComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var cb = (ComboBox)sender;
-            if (!cb.IsLoaded || cb.SelectedIndex < 0 || !IsUserChange(cb)) return;
-            if (REG_MDR_OFF_FLAG == null) return;
-
-            // 0 = Enable, 1 = Disable (matches item order in XAML)
-            BLLogic?.SendWriteCommand(REG_MDR_OFF_FLAG.Value, (ushort)cb.SelectedIndex);
+            // Note: Modbus write is deferred to Set Configuration button click
         }
 
-        // Referenced in XAML (ZPA DIRECTION combo). Stub - set REG_ZPA_IP_DIRECTION to enable writing.
         private void IpDirection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var cb = (ComboBox)sender;
-            if (!cb.IsLoaded || cb.SelectedIndex < 0 || !IsUserChange(cb)) return;
-            if (REG_ZPA_IP_DIRECTION == null) return;
-
-            // 0 = Up Stream, 1 = Down stream (matches item order in XAML)
-            BLLogic?.SendWriteCommand(REG_ZPA_IP_DIRECTION.Value, (ushort)cb.SelectedIndex);
+            // Note: Modbus write is deferred to Set Configuration button click
         }
 
-        // ── Text boxes: send on Enter, or on focus-loss if the text changed ──
+        // ── Text boxes: format display on Enter or LostFocus without sending write commands ──
         private void ZpaTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
             var tb = (TextBox)sender;
-            tb.Tag = tb.Text;                       // remember value at focus time
+            tb.Tag = tb.Text;
         }
 
         private void ZpaTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             var tb = (TextBox)sender;
-            if ((tb.Tag as string) != tb.Text) SendTextBox(tb);
+            FormatIpTextBox(tb);
         }
 
         private void ZpaTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
             var tb = (TextBox)sender;
-            SendTextBox(tb);
+            FormatIpTextBox(tb);
             tb.Tag = tb.Text;
             Keyboard.ClearFocus();
         }
 
-        private void SendTextBox(TextBox tb)
+        private void FormatIpTextBox(TextBox tb)
         {
-            if (!IsGapTrainMode) return;   // only meaningful in GAP Train mode
+            if (tb == null || string.IsNullOrWhiteSpace(tb.Text)) return;
+            if (byte.TryParse(LastOctetOf(tb.Text), out byte val))
+            {
+                tb.Text = ToFullIp(val.ToString());
+            }
+        }
 
-            ushort? reg = tb == UpStreamIPTextBox ? REG_UPSTREAM_IP
-                        : tb == DownStreamIPTextBox ? REG_DOWNSTREAM_IP
-                        : (ushort?)null;
+        // ══════════════════════════════════════════════════════════════
+        //  SET CONFIGURATION BUTTON CLICK
+        //  Sends all ZPA values one-by-one only when this button is clicked
+        // ══════════════════════════════════════════════════════════════
+        private void SetConfigurationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsEditMode)
+            {
+                MessageBox.Show("Please enable EDIT MODE before applying configuration.",
+                                "Edit Mode Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-            if (reg == null || BLLogic == null) return;
-            // User may type "30" or the full "192.168.1.30" - only the last octet goes to the device
-            if (!byte.TryParse(LastOctetOf(tb.Text), out byte value)) return;
+            if (BLLogic == null || !BLLogic.IsConnected)
+            {
+                MessageBox.Show("Controller is not connected. Please connect first.",
+                                "Not Connected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-            BLLogic.SendWriteCommand(reg.Value, value);
+            // ── Required Fields Validation ──
+            var missingFields = new List<string>();
+            if (ModeComboBox == null || ModeComboBox.SelectedIndex < 0)
+                missingFields.Add("MODE");
+            if (MDRDirectionComboBox == null || MDRDirectionComboBox.SelectedIndex < 0)
+                missingFields.Add("MDR DIRECTION");
+            if (ipdirection == null || ipdirection.SelectedIndex < 0)
+                missingFields.Add("ZPA DIRECTION");
 
-            // Show it back in full form
-            tb.Text = ToFullIp(value.ToString());
+            if (missingFields.Count > 0)
+            {
+                string msg = missingFields.Count == 1
+                    ? $"Please select a {missingFields[0]}."
+                    : $"The following fields are required:\n• " + string.Join("\n• ", missingFields);
+
+                MessageBox.Show(msg, "Required Field", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                if (ModeComboBox?.SelectedIndex < 0) ModeComboBox.Focus();
+                else if (MDRDirectionComboBox?.SelectedIndex < 0) MDRDirectionComboBox.Focus();
+                else ipdirection?.Focus();
+
+                return;
+            }
+
+            bool anySent = false;
+
+            // 1. MODE (Register 0x0040: 0 = OFF, 1 = GAP Train)
+            if (ModeComboBox != null && ModeComboBox.SelectedIndex >= 0)
+            {
+                ushort modeVal = (ushort)ModeComboBox.SelectedIndex;
+                BLLogic.SendWriteCommand(0x0040, modeVal);
+                System.Diagnostics.Debug.WriteLine($"[ZPA SET] Mode sent: {modeVal} ({(modeVal == 1 ? "GAP Train" : "OFF")})");
+                anySent = true;
+                Thread.Sleep(10);
+            }
+
+            // 2. MDR DIRECTION (Register 0x0041: 0 = CW, 1 = CCW)
+            if (MDRDirectionComboBox != null && MDRDirectionComboBox.SelectedIndex >= 0)
+            {
+                ushort dirVal = (ushort)MDRDirectionComboBox.SelectedIndex;
+                BLLogic.SendWriteCommand(0x0041, dirVal);
+                System.Diagnostics.Debug.WriteLine($"[ZPA SET] MDR Direction sent: {dirVal} ({(dirVal == 1 ? "CCW" : "CW")})");
+                anySent = true;
+                Thread.Sleep(10);
+            }
+
+            // 3. ZPA DIRECTION (REG_ZPA_IP_DIRECTION: 0 = Up Stream, 1 = Down stream)
+            if (ipdirection != null && ipdirection.SelectedIndex >= 0 && REG_ZPA_IP_DIRECTION.HasValue)
+            {
+                ushort zpaDirVal = (ushort)ipdirection.SelectedIndex;
+                BLLogic.SendWriteCommand(REG_ZPA_IP_DIRECTION.Value, zpaDirVal);
+                System.Diagnostics.Debug.WriteLine($"[ZPA SET] ZPA Direction sent: {zpaDirVal}");
+                anySent = true;
+                Thread.Sleep(10);
+            }
+
+            // 4. MDR OFF FLAG (REG_MDR_OFF_FLAG: 0 = Enable, 1 = Disable)
+            if (MDRflagComboBox != null && MDRflagComboBox.SelectedIndex >= 0 && REG_MDR_OFF_FLAG.HasValue)
+            {
+                ushort flagVal = (ushort)MDRflagComboBox.SelectedIndex;
+                BLLogic.SendWriteCommand(REG_MDR_OFF_FLAG.Value, flagVal);
+                System.Diagnostics.Debug.WriteLine($"[ZPA SET] MDR Off Flag sent: {flagVal}");
+                anySent = true;
+                Thread.Sleep(10);
+            }
+
+            // 5. MASTER IP (Register 0x0024: Upstream IP last octet) - applicable in GAP Train mode
+            if (IsGapTrainMode && UpStreamIPTextBox != null && !string.IsNullOrWhiteSpace(UpStreamIPTextBox.Text))
+            {
+                if (byte.TryParse(LastOctetOf(UpStreamIPTextBox.Text), out byte upValue))
+                {
+                    BLLogic.SendWriteCommand(REG_UPSTREAM_IP, upValue);
+                    UpStreamIPTextBox.Text = ToFullIp(upValue.ToString());
+                    System.Diagnostics.Debug.WriteLine($"[ZPA SET] Master IP sent: {upValue}");
+                    anySent = true;
+                    Thread.Sleep(10);
+                }
+                else
+                {
+                    MessageBox.Show("Please enter a valid Master IP (0–255).", "Invalid Master IP", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
+
+            // 6. LAST IP (Register 0x0025: Downstream IP last octet) - applicable in GAP Train mode
+            if (IsGapTrainMode && DownStreamIPTextBox != null && !string.IsNullOrWhiteSpace(DownStreamIPTextBox.Text))
+            {
+                if (byte.TryParse(LastOctetOf(DownStreamIPTextBox.Text), out byte downValue))
+                {
+                    BLLogic.SendWriteCommand(REG_DOWNSTREAM_IP, downValue);
+                    DownStreamIPTextBox.Text = ToFullIp(downValue.ToString());
+                    System.Diagnostics.Debug.WriteLine($"[ZPA SET] Last IP sent: {downValue}");
+                    anySent = true;
+                    Thread.Sleep(10);
+                }
+                else
+                {
+                    MessageBox.Show("Please enter a valid Last IP (0–255).", "Invalid Last IP", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
+
+            if (anySent)
+            {
+                MessageBox.Show("ZPA Configuration successfully sent to controller.", "Configuration Applied", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         public void UpdateMotorTelemetry(ModbusDevice device)
@@ -1365,8 +1466,13 @@ namespace BLDC_Demo
 
         public void ClearUI()
         {
+            if (EditModeToggle != null)
+                EditModeToggle.IsChecked = false;
+
             ModeComboBox.SelectedIndex = -1;
             MDRDirectionComboBox.SelectedIndex = -1;
+            if (ipdirection != null)
+                ipdirection.SelectedIndex = -1;
 
             // Mode is now -1, so this disables and empties Master IP, Last IP and MDR Off Flag
             ApplyModeState();

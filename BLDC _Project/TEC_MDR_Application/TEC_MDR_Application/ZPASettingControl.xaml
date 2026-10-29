@@ -56,12 +56,18 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Right: Edit Mode Toggle -->
+                <!-- Right: ZPA Status Indicator & Edit Mode Toggle -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+
                     <Path Width="11" Height="11" Stretch="Uniform" Fill="{StaticResource AccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center"
                           Data="M3,17.25V21h3.75L17.81,9.94l-3.75-3.75L3,17.25z M20.71,7.04c0.39-0.39,0.39-1.02,0-1.41l-2.34-2.34c-0.39-0.39-1.02-0.39-1.41,0l-1.83,1.83l3.75,3.75L20.71,7.04z"/>
-                    <TextBlock Text="EDIT MODE" FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <ToggleButton x:Name="EditModeToggle" VerticalAlignment="Center" Style="{StaticResource ModernToggleSwitch}"/>
+                    <TextBlock Text="EDIT" FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ToggleButton x:Name="EditModeToggle"
+                                  IsChecked="False"
+                                  VerticalAlignment="Center"
+                                  Style="{StaticResource ModernToggleSwitch}"
+                                  Click="EditModeToggle_Click"
+                                  ToolTip="Toggle Edit Mode to modify ZPA settings"/>
                 </StackPanel>
             </Grid>
 
@@ -123,12 +129,53 @@
                         </ComboBox>
                     </StackPanel>
 
-                    <!-- MDR OFF DELAY -->
 
+
+                    <!-- ZPA DIRECTION -->
+                    <StackPanel Grid.Row="0"
+                              Grid.Column="4">
+
+                                 <TextBlock Text="▸ ZPA DIRECTION"
+                                 Style="{StaticResource FieldLabel}"/>
+
+                                    <ComboBox x:Name="ipdirection"
+                                Foreground="#5A6A8A"
+                                Style="{StaticResource DarkComboBox}"
+                                ItemContainerStyle="{StaticResource MutedComboItem}"
+                                SelectionChanged="IpDirection_SelectionChanged">
+
+                                        <ComboBoxItem Content="Up Stream "/>
+                                        <ComboBoxItem Content="Down stream"/>
+
+                                    </ComboBox>         
+                    </StackPanel>
+
+
+                    <!-- MDR OFF DELAY -->
+                    
+
+                    <!-- MDR OFF FLAG -->
+                    <StackPanel Grid.Row="2"
+                                 Grid.Column="0">
+
+                                            <TextBlock Text="▸ MDR OFF FLAG"
+                                    Style="{StaticResource FieldLabel}"/>
+
+                                        <ComboBox x:Name="MDRflagComboBox"
+                                   Foreground="#5A6A8A"
+                                   Style="{StaticResource DarkComboBox}"
+                                   ItemContainerStyle="{StaticResource MutedComboItem}"
+                                   SelectionChanged="MDRflagComboBox_SelectionChanged">
+
+                                            <ComboBoxItem Content="Enable"/>
+                                            <ComboBoxItem Content="Disable"/>
+
+                                        </ComboBox>     
+                    </StackPanel>
 
                     <!-- UPSTREAM IP -->
                     <StackPanel Grid.Row="2"
-                                Grid.Column="0">
+                                Grid.Column="2">
 
                         <TextBlock Text="▸ MASTER IP"
                                    Style="{StaticResource FieldLabel}"/>
@@ -141,7 +188,7 @@
 
                     <!-- DOWNSTREAM IP -->
                     <StackPanel Grid.Row="2"
-                                Grid.Column="2">
+                                Grid.Column="4">
 
                         <TextBlock Text="▸ LAST IP"
                                    Style="{StaticResource FieldLabel}"/>
@@ -152,43 +199,8 @@
                                  IsReadOnly="False"/>
                     </StackPanel>
 
-                    <!-- IP DIRECTION -->
-                    <StackPanel Grid.Row="2"
-                                Grid.Column="4">
-
-                        <TextBlock Text="▸ ZPA DIRECTION"
-                                   Style="{StaticResource FieldLabel}"/>
-
-                        <ComboBox x:Name="ipdirection"
-                                  Foreground="#5A6A8A"
-                                  Style="{StaticResource DarkComboBox}"
-                                  ItemContainerStyle="{StaticResource MutedComboItem}"
-                                  SelectionChanged="IpDirection_SelectionChanged">
-
-                            <ComboBoxItem Content="Up Stream "/>
-                            <ComboBoxItem Content="Down stream"/>
-
-                        </ComboBox>
-                    </StackPanel>
-
-                    <!-- MDR OFF FLAG -->
-                    <StackPanel Grid.Row="0"
-                                Grid.Column="4">
-
-                        <TextBlock Text="▸ MDR OFF FLAG"
-                                   Style="{StaticResource FieldLabel}"/>
-
-                        <ComboBox x:Name="MDRflagComboBox"
-                                  Foreground="#5A6A8A"
-                                  Style="{StaticResource DarkComboBox}"
-                                  ItemContainerStyle="{StaticResource MutedComboItem}"
-                                  SelectionChanged="MDRflagComboBox_SelectionChanged">
-
-                            <ComboBoxItem Content="Enable"/>
-                            <ComboBoxItem Content="Disable"/>
-
-                        </ComboBox>
-                    </StackPanel>
+                  
+                   
 
                     <!-- SET CONFIGURATION BUTTON -->
                     <Button x:Name="SetConfigurationButton"
@@ -199,7 +211,8 @@
                             Style="{StaticResource AdvancedButton}"
                             Width="Auto"
                             Padding="16,0"
-                            Margin="0,0,0,4">
+                            Margin="0,0,0,4"
+                            Click="SetConfigurationButton_Click">
                         <Button.Effect>
                             <DropShadowEffect Color="#5A6A8A" BlurRadius="8" ShadowDepth="0" Opacity="0.20"/>
                         </Button.Effect>
